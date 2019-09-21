@@ -36,7 +36,6 @@ class YoloDetection : Detector{
     private var origin_height = 0
     private var scale = 0.0f
 
-
     private var inferenceInterface: TensorFlowInferenceInterface? = null
 
     companion object {
@@ -72,32 +71,21 @@ class YoloDetection : Detector{
     }
 
     override fun detect(bitmap: Bitmap) : MutableList<BBox>{
-
         Log.i(TAG, ""+bitmap.width+" "+bitmap.height)
 
         Trace.beginSection("detectImage")
-
         bitmap.getPixels(intValues, 0, bitmap.width, 0, 0,
             bitmap.width, bitmap.height)
 
+        Log.i("size",intValues.size.toString())
         for (i in 0 until intValues.size) {
             val value  = intValues[i]
-            //Log.i(TAG, value.toString())
-            if(value == 0){
-                floatValues!![i * 3 + 0]= 0.50196078f
-                floatValues!![i * 3 + 1]= 0.50196078f
-                floatValues!![i * 3 + 2]= 0.50196078f
-                continue
-            }
-
             floatValues!![i * 3 + 0] = (((value shr 16) and 0xFF) / (255.0)).toFloat()
-           // Log.i(TAG, floatValues!![i * 3 + 0].toString())
             floatValues!![i * 3 + 1] = (((value shr 8) and 0xFF) /255.0).toFloat()
-           // Log.i(TAG, floatValues!![i * 3 + 1].toString())
             floatValues!![i * 3 + 2] = (((value and 0xFF)) / (255.0)).toFloat()
-           // Log.i(TAG, floatValues!![i * 3 + 2].toString())
         }
         Trace.endSection()
+        Log.i("size",floatValues!!.size.toString())
 
         Trace.beginSection("feed")
         inferenceInterface!!.feed(input_name, floatValues, 1,inputSize.toLong(),inputSize.toLong(),3)
@@ -113,14 +101,10 @@ class YoloDetection : Detector{
         inferenceInterface!!.fetch(output_names[2], output3)
         Trace.endSection()
 
-        for(i in output3!!.size / 2..output3!!.size / 2+400){
-            Log.i(TAG, "output3:"+ i+ " " +output3!![i].toString())
-        }
-
         val list : MutableList<BBox> = arrayListOf()
-        val list3 = processData(output3!!, 13*13, list)
-        val list2 = processData(output2!!, 26*26, list)
-        val list1 = processData(output1!!, 52*52, list)
+        processData(output3!!, 13*13*3, list)
+        processData(output2!!, 26*26*3, list)
+        processData(output1!!, 52*52*3, list)
         return list
     }
 
@@ -151,10 +135,10 @@ class YoloDetection : Detector{
 
         val matrix = Matrix()
         matrix.postScale(scale, scale)
-        var pic = Bitmap.createBitmap(bitmap, 0, 0, origin_width, origin_height, matrix, true)
+        val pic = Bitmap.createBitmap(bitmap, 0, 0, origin_width, origin_height, matrix, true)
         Log.i(TAG, "" + pic.width +" "+pic.height)
 
-        var newBitmap =Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val newBitmap =Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
 
         val paddingW = (size - w) / 2
         val paddingH = (size - h) / 2
@@ -171,7 +155,7 @@ class YoloDetection : Detector{
     }
 
 
-    fun processData(array: FloatArray, boxNum:Int, list: MutableList<BBox>) : MutableList<BBox>{
+    fun processData(array: FloatArray, boxNum:Int, list: MutableList<BBox>){
         var beginIndex = 0
 
         val paddingW = (inputSize - (scale * origin_width).toInt()) / 2
@@ -193,7 +177,6 @@ class YoloDetection : Detector{
             var ymin = y - h /2
             var xmax = x + w /2
             var ymax = y + h /2
-
             //Log.i(TAG, "1. xmin:" + xmin+" xmax:"+ xmax+" ymin:" + ymin+" ymax:"+ ymax)
 
             //(xmin, ymin, xmax, ymax) -> (xmin_org, ymin_org, xmax_org, ymax_org)
@@ -202,8 +185,23 @@ class YoloDetection : Detector{
             xmax = (xmax - paddingW) / scale
             ymax = (ymax - paddingH) / scale
 
+            Log.i("yamx", ymax.toString())
+
+            if(xmax > origin_width){
+                xmax = origin_width.toFloat()
+            }
+            if(ymax > origin_height){
+                ymax = origin_height.toFloat()
+            }
+            if(xmin < 0){
+                xmin = 0.0f
+            }
+            if(ymin < 0){
+                ymin = 0.0f
+            }
+
             //Log.i(TAG, "2 .xmin:" + xmin+" xmax:"+ xmax+" ymin:" + ymin+" ymax:"+ ymax)
-            if(xmin < 0 || xmax > origin_width || ymin < 0 || ymax > origin_height){
+            if(xmin >= xmax  || ymin >= ymax ){
                 beginIndex = (beginIndex + 85)
                 continue
             }
@@ -223,9 +221,7 @@ class YoloDetection : Detector{
             Log.i(TAG, "4."+box.classId.toString())
             beginIndex = (beginIndex + 85)
         }
-
         Log.i("size", list.size.toString())
-        return list
     }
 
     fun findBiggest(array: FloatArray, beginIndex:Int, endIndex:Int):Array<Float>{
@@ -237,7 +233,7 @@ class YoloDetection : Detector{
                 index = i - beginIndex
             }
         }
-        Log.i(TAG, "max:" + max.toString())
+        Log.i("max_score", "max:" + max.toString() + beginIndex)
         return arrayOf(max,index.toFloat())
     }
 

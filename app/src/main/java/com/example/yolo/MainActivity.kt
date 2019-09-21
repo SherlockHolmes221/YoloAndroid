@@ -47,11 +47,12 @@ class MainActivity : AppCompatActivity() {
 
         originImage = getImageFromAsset()
         Log.i(TAG, "width:" + originImage.width+ " height:" + originImage.height)
-        main_iv.setImageBitmap(originImage)
+        //main_iv.setImageBitmap(originImage)
 
         getClassesFromAsset()
 
         bitmap = detector.getScaleBitmap(originImage, INPUT_SIZE)
+        main_iv.setImageBitmap(bitmap)
 
         GlobalScope.launch(Dispatchers.Main) {
             refreshBoxes(GlobalScope.async {
@@ -61,8 +62,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun refreshBoxes(await: MutableList<BBox>) {
-        await.sortByDescending {it.score }
+        await.sortByDescending {it.score}
         Log.i(TAG, "refreshBoxes")
+        Log.i("size", await.size.toString())
 
         val newBitmap = originImage.copy(Bitmap.Config.ARGB_8888, true)
         Log.i(TAG, "newBitmap: "+newBitmap.width)
@@ -99,8 +101,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun detect(): MutableList<BBox> {
-        Log.i(TAG, "detect")
+        Log.i("detect_image", "detect")
         var list =  detector.detect(bitmap)
+
+        //todo
         return list
     }
 
