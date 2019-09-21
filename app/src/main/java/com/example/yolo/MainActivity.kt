@@ -69,8 +69,6 @@ class MainActivity : AppCompatActivity() {
         Log.i(TAG, "newBitmap: "+newBitmap.height)
 
         for(bbox in await){
-            if(bbox.classId != 0)
-                continue
             val xmin = bbox.xmin
             val xmax = bbox.xmax
             val ymin = bbox.ymin
@@ -94,7 +92,7 @@ class MainActivity : AppCompatActivity() {
             paint.setStrokeWidth(5.0f)
             canvas.drawRect(rect, paint)
             canvas.drawBitmap(newBitmap, rect, rect, paint)
-            canvas.drawText(className+bbox.score, xmin,ymin, paint)
+//            canvas.drawText(className+bbox.score, xmin,ymin, paint)
         }
         main_iv.setImageBitmap(newBitmap)
 
