@@ -65,8 +65,8 @@ class MainActivity : AppCompatActivity() {
         Log.i(TAG, "refreshBoxes")
 
         val newBitmap = originImage.copy(Bitmap.Config.ARGB_8888, true)
-        Log.i(TAG, "newBitmap: "+newBitmap.width) //1200
-        Log.i(TAG, "newBitmap: "+newBitmap.height)//862
+        Log.i(TAG, "newBitmap: "+newBitmap.width)
+        Log.i(TAG, "newBitmap: "+newBitmap.height)
 
         for(bbox in await){
             if(bbox.classId != 0)

@@ -173,6 +173,12 @@ class YoloDetection : Detector{
 
     fun processData(array: FloatArray, boxNum:Int, list: MutableList<BBox>) : MutableList<BBox>{
         var beginIndex = 0
+
+        val paddingW = (inputSize - (scale * origin_width).toInt()) / 2
+        val paddingH = (inputSize - (scale * origin_height).toInt()) / 2
+        Log.i("padding",paddingH.toString())
+        Log.i("padding",paddingW.toString())
+
         for(i in 0..boxNum-1){
 
             Log.i(TAG,"beginIndex:"+beginIndex)
@@ -188,18 +194,15 @@ class YoloDetection : Detector{
             var xmax = x + w /2
             var ymax = y + h /2
 
-            Log.i(TAG, "1. xmin:" + xmin+" xmax:"+ xmax+" ymin:" + ymin+" ymax:"+ ymax)
+            //Log.i(TAG, "1. xmin:" + xmin+" xmax:"+ xmax+" ymin:" + ymin+" ymax:"+ ymax)
 
             //(xmin, ymin, xmax, ymax) -> (xmin_org, ymin_org, xmax_org, ymax_org)
-            val paddingW = (inputSize - (scale * origin_width).toInt()) / 2
-            val paddingH = (inputSize - (scale * origin_width).toInt()) / 2
-
             xmin = (xmin - paddingW) / scale
             ymin = (ymin - paddingH) / scale
             xmax = (xmax - paddingW) / scale
             ymax = (ymax - paddingH) / scale
 
-            Log.i(TAG, "2 .xmin:" + xmin+" xmax:"+ xmax+" ymin:" + ymin+" ymax:"+ ymax)
+            //Log.i(TAG, "2 .xmin:" + xmin+" xmax:"+ xmax+" ymin:" + ymin+" ymax:"+ ymax)
             if(xmin < 0 || xmax > origin_width || ymin < 0 || ymax > origin_height){
                 beginIndex = (beginIndex + 85)
                 continue
@@ -207,7 +210,7 @@ class YoloDetection : Detector{
 
             val max =findBiggest(array, beginIndex+5,beginIndex+5+79)
             val score = array[beginIndex+4] * max[0]
-            Log.i(TAG,"3. score = "+score)
+            //Log.i(TAG,"3. score = "+score)
 
             if(score < 0.3){
                 beginIndex = (beginIndex + 85)
