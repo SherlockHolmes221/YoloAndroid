@@ -71,7 +71,7 @@ class YoloDetection : Detector{
         }
     }
 
-    override fun detect(bitmap: Bitmap) : MutableList<MutableList<BBox>>{
+    override fun detect(bitmap: Bitmap) : MutableList<BBox>{
 
         Log.i(TAG, ""+bitmap.width+" "+bitmap.height)
 
@@ -117,10 +117,11 @@ class YoloDetection : Detector{
             Log.i(TAG, "output3:"+ i+ " " +output3!![i].toString())
         }
 
-        val list3 = processData(output3!!, 13*13)
-        val list2 = processData(output2!!, 26*26)
-        val list1 = processData(output1!!, 52*52)
-        return arrayListOf(list1, list2, list3)
+        val list : MutableList<BBox> = arrayListOf()
+        val list3 = processData(output3!!, 13*13, list)
+        val list2 = processData(output2!!, 26*26, list)
+        val list1 = processData(output1!!, 52*52, list)
+        return list
     }
 
     override fun close() {
@@ -170,8 +171,7 @@ class YoloDetection : Detector{
     }
 
 
-    fun processData(array: FloatArray, boxNum:Int) : MutableList<BBox>{
-        val list : MutableList<BBox> = arrayListOf()
+    fun processData(array: FloatArray, boxNum:Int, list: MutableList<BBox>) : MutableList<BBox>{
         var beginIndex = 0
         for(i in 0..boxNum-1){
 

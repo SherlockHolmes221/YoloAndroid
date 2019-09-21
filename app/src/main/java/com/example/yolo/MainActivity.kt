@@ -8,12 +8,13 @@ import android.widget.Toast
 import com.example.yolo.Tensorflow.YoloDetection
 import kotlinx.android.synthetic.main.activity_main.*
 import android.graphics.BitmapFactory
-import android.graphics.Matrix
 import android.util.Log
-import androidx.core.graphics.get
-import androidx.core.graphics.set
 import com.example.yolo.Tensorflow.Detector
-import java.io.IOException
+import com.example.yolo.bean.BBox
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 
 
 class MainActivity : AppCompatActivity() {
@@ -28,6 +29,8 @@ class MainActivity : AppCompatActivity() {
     private val outputSizes = arrayOf(52*52*5*80,26*26*5*80,13*13*5*80)
 
     private lateinit var detector : Detector
+    private lateinit var originImage : Bitmap
+    private lateinit var bitmap : Bitmap
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,14 +39,37 @@ class MainActivity : AppCompatActivity() {
 
         detector = getModel()
 
-        val image = getImageFromAsset(IMAGE_NAME)
-        Log.i(TAG, "width:" + image.width+ " height:" + image.height)
+        originImage = getImageFromAsset(IMAGE_NAME)
+        Log.i(TAG, "width:" + originImage.width+ " height:" + originImage.height)
+        main_iv.setImageBitmap(originImage)
 
-        val bitmap = detector.getScaleBitmap(image, INPUT_SIZE)
-        main_iv.setImageBitmap(bitmap)
+        bitmap = detector.getScaleBitmap(originImage, INPUT_SIZE)
 
-        val boxes = detector.detect(bitmap)
+        GlobalScope.launch(Dispatchers.Main) {
+            refreshBoxes(GlobalScope.async {
+                detect()
+            }.await())
+        }
+    }
 
+    private fun refreshBoxes(await: MutableList<BBox>) {
+        Log.i(TAG, "refreshBoxes")
+
+        for(bbox in await){
+            val xmin = bbox.xmin
+            val xmax = bbox.xmax
+            val ymin = bbox.ymin
+            val ymax = bbox.ymax
+            val classid= bbox.classId
+
+
+        }
+
+    }
+
+    private fun detect(): MutableList<BBox> {
+        Log.i(TAG, "detect")
+        return detector.detect(bitmap)
     }
 
 
