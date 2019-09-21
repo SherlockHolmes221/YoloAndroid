@@ -214,7 +214,7 @@ class YoloDetection : Detector{
                 continue
             }
 
-            val box =BBox(xmin, xmax, ymin, ymax,max[1].toInt())
+            val box =BBox(xmin, xmax, ymin, ymax,max[1].toInt(),score)
             list.add(box)
 
             Log.i(TAG, "4."+box.classId.toString())
@@ -229,9 +229,9 @@ class YoloDetection : Detector{
         var max = 0.0f
         var index = 0
         for(i in beginIndex..endIndex){
-            if(array[beginIndex] > max) {
-                max = array[beginIndex]
-                index = beginIndex
+            if(array[i] > max) {
+                max = array[i]
+                index = i - beginIndex
             }
         }
         Log.i(TAG, "max:" + max.toString())
